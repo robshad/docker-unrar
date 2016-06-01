@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 MAINTAINER Rob Shad <robertmshad@googlemail.com>
-ENV APTLIST="lftp wget"
+ENV APTLIST="cron lftp wget"
 
 RUN apt-get update -q && \
   apt-get install $APTLIST -qy && \
