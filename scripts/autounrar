@@ -1,0 +1,103 @@
+#!/bin/bash
+
+PIDFILE="/tmp/autounrar.pid"
+DESTDIR="/input"
+SRCDIR="/input"
+
+VERBOSE=false
+REMOVE=false
+
+helpfile()
+{
+    echo -e "---------------------------------------------------------"
+    echo -e "Autounrar - automatically unrar files from a directory,"
+    echo -e " remove the containing folder, and copy to a directory."
+    echo -e " Options:"
+    echo -e "    -h\tHelp: This Menu"
+    echo -e "    -r\tRemove: Remove broken/incomplete/corrupt archives"
+    echo -e "    -v\tVerbose: Display what's happening"
+    echo -e "---------------------------------------------------------"
+    exit
+}
+
+cleanupfiles()
+{
+    CURRENTTIME=$(date "+%s")
+    CLEANUPDIR=$(ls $SRCDIR)
+    for file in $CLEANUPDIR; do
+        if [ -d $SRCDIR/$file ]; then
+            TIMELASTMODIFIED=$(stat -c "%X" $SRCDIR/$file)
+            DELTATIME=$(($CURRENTTIME - $TIMELASTMODIFIED))
+            if [ $DELTATIME -gt $((60*60)) ]; then
+                echo "Delete $file"
+                rm -rf $SRCDIR/$file
+            fi
+        fi
+    done
+}
+
+while getopts :vrhi:o: opt; do
+    case $opt in
+        v)
+            VERBOSE=true
+            ;;
+        r)
+            REMOVE=true
+            ;;
+        i)
+            SRCDIR=$OPTARG
+            ;;
+        o)
+            DESTDIR=$OPTARG
+            ;;
+        h)
+            helpfile
+            ;;
+    esac
+done
+
+
+
+if [ -e $PIDFILE ]; then
+    echo "Already running"
+    exit
+else
+    cleanupfiles
+
+    touch $PIDFILE
+    date > $PIDFILE
+
+    if [ "$VERBOSE" = true ]; then
+        echo "Running on directory $DESTDIR.."
+    fi
+    EXTRACTFILE=$(find $SRCDIR -type f -name "*.rar");
+    for i in $EXTRACTFILE; do
+        PARENTDIR=$(dirname $i)
+        UNRAROUTPUT=$(unrar t $i 2>/dev/null)
+        if [[ $UNRAROUTPUT == *"All OK"* ]]; then
+            EXTRACTEDFILE=$(unrar lb $i)
+            if [ "$VERBOSE" = true ]; then
+                echo "Unraring file $EXTRACTEDFILE to /tmp.."
+            fi
+            SUCCESS=$(unrar e $i /tmp 2>/dev/null)
+            if [[ $SUCCESS == *"All OK"* ]]; then
+                if [ "$VERBOSE" = true ]; then
+                    echo "$EXTRACTEDFILE has been extracted. Copying to /downloads.."
+                fi
+                if [ -e "$DESTDIR/$EXTRACTEDFILE" ]; then
+                    if [ "$VERBOSE" = true ]; then
+                        echo "File exists. Removing.."
+                    fi
+                    rm "$DESTDIR/$EXTRACTEDFILE"
+                fi
+                mv "/tmp/$EXTRACTEDFILE" $DESTDIR
+                # delete folder containing rar file.
+                rm -rf $PARENTDIR
+            fi
+        else
+            echo "Error with file $i, removing.."
+            rm -rf $PARENTDIR
+        fi
+    done
+    rm $PIDFILE
+fi
