@@ -7,13 +7,11 @@ RUN apt-get update -q && \
   apt-get clean && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/*
 
 ADD scripts/ /scripts/
-RUN rm -f /tmp/autounrar.pid && \
-
-  echo "Setting file permissions" && \
-  chmod -v +x /scripts/autounrar && \
-
-  echo "Adding cron job" && \
-  crontab -l | { cat; echo "*/5 * * * * /scripts/autounrar"; } | crontab -
+RUN rm -f /tmp/autounrar.pid
+RUN echo "Setting file permissions"
+RUN chmod -v +x /scripts/autounrar
+RUN echo "Adding cron job"
+RUN crontab -l | { cat; echo "*/5 * * * * /scripts/autounrar"; } | crontab -
 
 # Volumes and Ports
 VOLUME ["/input", "/output", "/config"]
