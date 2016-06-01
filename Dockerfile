@@ -8,7 +8,13 @@ RUN apt-get update -q && \
 
 ADD init/ /etc/my_init.d/
 ADD scripts/ /scripts/
-RUN chmod -v +x /etc/my_init.d/*.sh
+RUN rm -f /tmp/autounrar.pid && \
+
+  echo "Setting file permissions" && \
+  chmod -v +x /scripts/autounrar && \
+
+  echo "Adding cron job" && \
+  crontab -l | { cat; echo "*/5 * * * * /scripts/autounrar"; } | crontab -
 
 # Volumes and Ports
 VOLUME ["/input", "/output", "/config"]
