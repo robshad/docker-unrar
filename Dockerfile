@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM linuxserver/baseimage
 MAINTAINER Rob Shad <robertmshad@googlemail.com>
 ENV APTLIST="cron lftp wget"
 
