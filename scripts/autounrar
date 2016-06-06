@@ -92,11 +92,11 @@ else
                 fi
                 mv "/tmp/$EXTRACTEDFILE" $DESTDIR
                 # delete folder containing rar file.
-                # rm -rf $PARENTDIR
+                rm -rf $PARENTDIR
             fi
         else
             echo "Error with file $i, removing.."
-            rm -rf $PARENTDIR
+            # rm -rf $PARENTDIR
         fi
     done
     rm $PIDFILE
