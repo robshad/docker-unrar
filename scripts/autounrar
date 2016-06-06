@@ -1,8 +1,8 @@
 #!/bin/bash
 
 PIDFILE="/tmp/autounrar.pid"
-DESTDIR="/input"
-SRCDIR="/input"
+DESTDIR="/downloads"
+SRCDIR="/downloads"
 
 VERBOSE=false
 REMOVE=false
@@ -28,7 +28,7 @@ cleanupfiles()
         if [ -d $SRCDIR/$file ]; then
             TIMELASTMODIFIED=$(stat -c "%X" $SRCDIR/$file)
             DELTATIME=$(($CURRENTTIME - $TIMELASTMODIFIED))
-            if [ $DELTATIME -gt $((60*60)) ]; then
+            if [ $DELTATIME -gt $((60*60*24)) ]; then
                 echo "Delete $file"
                 rm -rf $SRCDIR/$file
             fi
